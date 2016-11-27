@@ -12,6 +12,9 @@ integer g_iDialogH;
 integer g_iHasBite = FALSE;
 integer g_iHasStrike = FALSE;
 
+integer g_iPaused = FALSE;
+integer g_iSuspend = FALSE;
+
 // Auto-detected/calculated in state_entry
 integer g_iLinkRod;
 integer g_iLinkScore;
@@ -107,13 +110,16 @@ default
                     PRIM_ROT_LOCAL, g_rRodRot,
                     PRIM_COLOR, ALL_SIDES, <1,1,1>, 0
                 ]);
-                llInstantMessage(g_kFisher,"Great job! Transferring your score of "+PrettyFloat(g_fScore));
+                llInstantMessage(g_kFisher,"Transferring your score of "+PrettyFloat(g_fScore));
                 llShout(OPENFISHING_CHANNEL, OFID+":transfer_score:"+g_kFisher+":"+PrettyFloat(g_fScore));
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
                 g_fScore = 0.0;
                 g_iHasBite = FALSE;
                 g_iHasStrike = FALSE;
+                g_iPaused = FALSE;
+                llMessageLinked(LINK_SET, 0, OFID+":paused=0", NULL_KEY);
+                g_iSuspend = FALSE;
                 g_iNumFish = 0;
                 g_vSitShift.z = 0;
                 llStopAnimation("relax");
@@ -200,15 +206,49 @@ default
 
     }
     
-/*
+
     touch_end(integer num_detected)
     {
+        if (llAvatarOnSitTarget()==NULL_KEY) return;
+        
         key kToucher = llDetectedKey(0);
         if (kToucher!=g_kFisher) return;
-
-        llWhisper(0, "todo: popup menu");
+        
+        if (g_iPaused) {
+            g_iPaused = FALSE;
+            llMessageLinked(LINK_SET, 0, OFID+":paused=0", NULL_KEY);
+            llSetTimerEvent(GenerateWait());
+            UpdateHover();
+        } else if (g_iSuspend == FALSE) {
+            g_iPaused = TRUE;
+            llMessageLinked(LINK_SET, 0, OFID+":paused=1", NULL_KEY);
+            llSetTimerEvent(0);
+            if (g_iLinkScore != -32768) llSetLinkPrimitiveParamsFast(g_iLinkScore,
+                                            [PRIM_TEXT, "< PAUSED >", <1,1,1>, 1] );
+        }
     }
-*/
+    
+    link_message(integer iSender, integer iNum, string sText, key kID)
+    {
+        list l = llParseString2List(sText, [":", "="], []);
+        
+        if (llList2String(l, 0)!=OFID) return;
+        
+        string sKey = llList2String(l, 1);
+        
+        if (sKey == "suspend") {
+            integer sVal = llList2Integer(l, 2);
+            if (sVal==1) {
+                g_iSuspend = TRUE;
+                llSetTimerEvent(0);
+            } else if (sVal==0) {
+                g_iSuspend = FALSE;                
+                llSetTimerEvent(GenerateWait());
+                UpdateHover();
+            }
+        }
+    }
+
     control (key kAV, integer iHeld, integer iChange)
     {
         if (!llGetPermissions() & PERMISSION_TAKE_CONTROLS) return;
