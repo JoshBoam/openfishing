@@ -26,7 +26,7 @@ integer g_iLinkDuration;
 
 integer g_iGroupOnly = 0;
 
-integer g_iDuration = 86400;  // 60*60*24 (in seconds)
+integer g_iDuration = 86400;  // 24 hours = 60*60*24 (in seconds)
 integer g_iMinutesLeft;
 integer g_iStartTime;        // unix
 
@@ -123,18 +123,18 @@ UpdateScoreDisplay()
 
 Conclude()
 {
-    string sInfo = "\n\nWe hope to see you soon again at:\n\n\t"+osGetGridHomeURI()+":"+llGetRegionName();
+    string sInfo = "\n\nWe hope to see you soon again at:\n\n\t"+osGetGridHomeURI()+":"+llGetRegionName()+"\n\n";
     if (g_kWinnerGold!=NULL_KEY) llInstantMessage(g_kWinnerGold,
-        "Congratulations! With a score of "+PrettyFloat(g_fScoreGold)+
+        "\nCongratulations! With a score of "+PrettyFloat(g_fScoreGold)+
         " you have won the GOLD TROPHY!"+sInfo);
     if (g_kWinnerSilver!=NULL_KEY) llInstantMessage(g_kWinnerSilver,
-        "Congratulations! With a score of "+PrettyFloat(g_fScoreSilver)+
+        "\nCongratulations! With a score of "+PrettyFloat(g_fScoreSilver)+
         " you have won the SILVER TROPHY"+sInfo);
     if (g_kWinnerBronze!=NULL_KEY) llInstantMessage(g_kWinnerBronze,
-        "Congratulations! With a score of "+PrettyFloat(g_fScoreBronze)+
+        "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBronze)+
         "you have won the BRONZE TROPHY"+sInfo);
     if (g_kWinnerBiggest!=NULL_KEY) llInstantMessage(g_kWinnerBiggest,
-        "Congratulations! With a score of "+PrettyFloat(g_fScoreBiggest)+
+        "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBiggest)+
         "you have won the BIGGEST FISH"+sInfo);
         
     llSay(OPENFISHING_CHANNEL, OFID+":conclude:"+(string)g_kWinnerGold+":"+
@@ -214,7 +214,7 @@ UpdateDurationDisplay()
     if (g_iGroupOnly) s+=" (group only)\n";
     else s+="\n";
     
-    if (g_iMinutesLeft < 60) s+="Less than an hour left";
+    if (g_iMinutesLeft < 60) s+=(string)(g_iMinutesLeft)+" minutes left";
     else s+=(string)(g_iMinutesLeft / 60)+" hours left";
     
     llSetLinkPrimitiveParamsFast(g_iLinkDuration, [PRIM_TEXT, s, <1,1,1>, 1.0]);
@@ -238,9 +238,9 @@ Reset()
     g_iStartTime = llGetUnixTime();
     UpdateTime();
     UpdateDurationDisplay();
-    llSetTimerEvent(60);
     // Reset price givers
     llSay(OPENFISHING_CHANNEL, OFID+":reset");
+    llSetTimerEvent(60);
 }
 
 UpdateTime()
@@ -268,16 +268,18 @@ default
         UpdateDurationDisplay();
         llSetTimerEvent(60);
     }
-    
+/*  
     on_rez(integer start_param)
     {
         Reset();
     }
+*/
     
     timer()
     {
         UpdateTime();
         if (g_iMinutesLeft <= 0) {
+            llSetTimerEvent(0);
             Conclude();
             Reset();
         } else {
