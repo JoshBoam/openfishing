@@ -108,7 +108,7 @@ default
                     PRIM_COLOR, ALL_SIDES, <1,1,1>, 0
                 ]);
                 llInstantMessage(g_kFisher,"Great job! Transferring your score of "+PrettyFloat(g_fScore));
-                llSay(OPENFISHING_CHANNEL, OFID+":transfer_score:"+g_kFisher+":"+PrettyFloat(g_fScore));
+                llShout(OPENFISHING_CHANNEL, OFID+":transfer_score:"+g_kFisher+":"+PrettyFloat(g_fScore));
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
                 g_fScore = 0.0;
@@ -165,7 +165,7 @@ default
             // Strike pressed on bite dialog. Request a fish
             llStopAnimation("strike");
             g_iHasStrike=FALSE;
-            llSay(OPENFISHING_CHANNEL, OFID+":get_fish:"+(string)g_kFisher);
+            llShout(OPENFISHING_CHANNEL, OFID+":get_fish:"+(string)g_kFisher);
             llStartAnimation("relax");
         } else  if (g_iHasBite==FALSE) {
             // Set up a new bite

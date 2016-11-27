@@ -68,7 +68,7 @@ UpdateScoreDisplay()
         if (g_kWinnerGold!=NULL_KEY)
             sScore += "GOLD\t"+g_sNameGold+"\t"+PrettyFloat(g_fScoreGold)+"lbs\n";
         else
-            sScore += "GOLD\n";
+            sScore += "GOLD\tunclaimed\n";
         if (g_kWinnerSilver!=NULL_KEY)
             sScore += "SILVER\t"+g_sNameSilver+"\t"+PrettyFloat(g_fScoreSilver)+"lbs\n";
         else
@@ -137,7 +137,7 @@ Conclude()
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBiggest)+
         "you have won the BIGGEST FISH"+sInfo);
         
-    llSay(OPENFISHING_CHANNEL, OFID+":conclude:"+(string)g_kWinnerGold+":"+
+    llShout(OPENFISHING_CHANNEL, OFID+":conclude:"+(string)g_kWinnerGold+":"+
                                                 (string)g_kWinnerSilver+":"+
                                                 (string)g_kWinnerBronze+":"+
                                                 (string)g_kWinnerBiggest);
@@ -239,7 +239,7 @@ Reset()
     UpdateTime();
     UpdateDurationDisplay();
     // Reset price givers
-    llSay(OPENFISHING_CHANNEL, OFID+":reset");
+    llShout(OPENFISHING_CHANNEL, OFID+":reset");
     llSetTimerEvent(60);
 }
 
@@ -255,7 +255,6 @@ default
 {
     state_entry()
     {
-        //llSay(OPENFISHING_CHANNEL, OFID+":Script running");
         g_iListenHandle = llListen(OPENFISHING_CHANNEL, "", NULL_KEY, "");
         g_iLinkCombinedScore = GetLinkByName("hover_all");
         g_iLinkGold = GetLinkByName("hover_gold");
