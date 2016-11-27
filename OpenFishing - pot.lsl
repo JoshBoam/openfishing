@@ -71,7 +71,7 @@ ParseConfig()
             else if (sSetting=="currency") g_sCurrency = " "+llList2String(lPair, 1);
             else if (sSetting=="allow_topup") {
                 string sValue=llToLower(llList2String(lPair, 1));
-                if (sValue=="TRUE" || sValue=="YES" || sValue=="1") g_iAllowTopup=TRUE;
+                if (sValue=="true" || sValue=="yes" || sValue=="1") g_iAllowTopup=TRUE;
                 else g_iAllowTopup=FALSE;
             }
         }
@@ -85,13 +85,24 @@ ParseConfig()
     UpdateHover();
 }
 
+Reset()
+{
+    if (g_iStartAmount) g_iPrizeTotal=g_iStartAmount;
+    else g_iPrizeTotal=0;
+    CalcPrizes();
+    UpdateHover();
+    if (g_iAllowTopup) {
+        llSetPayPrice(10, [1,5,10,20]);
+        llSetClickAction(CLICK_ACTION_PAY);
+    } else {
+        llSetClickAction(CLICK_ACTION_TOUCH);            
+    }
+}
+
 default
 {
     state_entry()
     {
-        // Read variable stored data from description
-        //g_iPrizeTotal = llList2Integer(llGetObjectDetails(llGetKey(),[OBJECT_DESC]),0);
-        
         ParseConfig();
         if (g_iStartAmount && g_iPrizeTotal==0) g_iPrizeTotal = g_iStartAmount;
         CalcPrizes();
@@ -115,7 +126,9 @@ default
             llOwnerSay("\nInitializing: 1 "+g_sCurrency+" has been paid to yourself.\n\n"+
                         "Podex: No additional steps required\n"+
                         "OMC: Authorize the object on https://www.virwox.com\n"+
-                        "Gloebit: Reset this script once more; you will get a popup with a clickable link to make an auto-debit subscription\n\n");
+                        "Gloebit: Authorize the object on https://www.gloebit.com\n\n");
+            // The following is needed to trigger creating a subscription
+            // if we use Gloebit as currency:
             llGiveMoney(llGetOwner(), 1);
         }
     }
@@ -149,46 +162,35 @@ default
             // :payout:kGold:kSilver:kBronze:kBiggest
             key kWinner = llList2Key(lMessage, 2);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeGold > 0) {
-                llWhisper(0, "llGiveMoney("+(string)kWinner+", "+(string)g_iPrizeGold+");");
                 llGiveMoney(kWinner, g_iPrizeGold);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeGold+g_sCurrency);
             }
+            llSleep(5);
             kWinner = llList2Key(lMessage, 3);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeSilver > 0) {
-                llWhisper(0, "llGiveMoney("+(string)kWinner+", "+(string)g_iPrizeSilver+");");
                 llGiveMoney(kWinner, g_iPrizeSilver);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeSilver+g_sCurrency);
             }
+            llSleep(5);
             kWinner = llList2Key(lMessage, 4);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeBronze > 0) {
-                llWhisper(0, "llGiveMoney("+(string)kWinner+", "+(string)g_iPrizeBronze+");");
                 llGiveMoney(kWinner, g_iPrizeBronze);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeBronze+g_sCurrency);
             }
+            llSleep(5);
             kWinner = llList2Key(lMessage, 5);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeBiggest > 0) {
-                llWhisper(0, "llGiveMoney("+(string)kWinner+", "+(string)g_iPrizeBiggest+");");
                 llGiveMoney(kWinner, g_iPrizeBiggest);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeBiggest+g_sCurrency);
             }
+            Reset();
         } else if (sCmd=="reset") {
-            if (g_iStartAmount) g_iPrizeTotal=g_iStartAmount;
-            else g_iPrizeTotal=0;
-            CalcPrizes();
-            UpdateHover();
-            if (g_iAllowTopup) {
-                llSetPayPrice(10, [1,5,10,20]);
-                llSetClickAction(CLICK_ACTION_PAY);
-            } else {
-                llSetClickAction(CLICK_ACTION_TOUCH);            
-            }
+            Reset();
         }
     }
     
     money(key kGiver, integer iAmount) {
         g_iPrizeTotal += iAmount;
-        // Persist variable data in case of sim crash etc
-        //llSetObjectDesc((string)g_iPrizeTotal);
         llSay(0, llGetDisplayName(kGiver)+" contributed "+(string)iAmount+g_sCurrency+" to the pot");
         CalcPrizes();
         UpdateHover();
