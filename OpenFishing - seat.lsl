@@ -12,7 +12,11 @@ integer g_iDialogH;
 integer g_iHasBite = FALSE;
 integer g_iHasStrike = FALSE;
 
+// when g_iPaused is TRUE, all scripts are paused
 integer g_iPaused = FALSE;
+
+// when g_iSuspend is TRUE, this script is paused, giving space
+// for add-on scripts such as the mathquizz to display a llDialog()
 integer g_iSuspend = FALSE;
 
 // Auto-detected/calculated in state_entry
@@ -91,6 +95,7 @@ default
         g_iListenHandle = llListen(OPENFISHING_CHANNEL, "", NULL_KEY, "");
 
         g_iLinkScore = GetLinkByName("hover_score");
+        ClearHover();
 
         // Set up rod
         g_iLinkRod = GetLinkByName("rod");
@@ -103,36 +108,34 @@ default
         if (iChange & CHANGED_LINK) {
             key kAvi = llAvatarOnSitTarget();
             if (kAvi==NULL_KEY) {
-                // Set rod straight, non-rotated and white
+                if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION) {
+                    llStopAnimation("relax");
+                    llStopAnimation("strike");
+                }
+                // Set rod straight, non-rotated, tinted white, and non-visible
                 llSetLinkPrimitiveParamsFast(g_iLinkRod, [
                     PRIM_FLEXIBLE, FALSE, 0, 0, 0, 0, 0, <0,0,0>,
                     PRIM_POS_LOCAL, g_vRodPos,
                     PRIM_ROT_LOCAL, g_rRodRot,
                     PRIM_COLOR, ALL_SIDES, <1,1,1>, 0
                 ]);
-                llInstantMessage(g_kFisher,"Transferring your score of "+PrettyFloat(g_fScore));
                 llShout(OPENFISHING_CHANNEL, OFID+":transfer_score:"+g_kFisher+":"+PrettyFloat(g_fScore));
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
+                ClearHover();
+            } else {
+                // Fisher sits down
+                g_kFisher = kAvi;
+                llRequestPermissions(g_kFisher, PERMISSION_TRIGGER_ANIMATION | PERMISSION_TAKE_CONTROLS);
+                // Sanity
                 g_fScore = 0.0;
+                g_iNumFish = 0;
+                g_vSitShift.z = 0;
                 g_iHasBite = FALSE;
                 g_iHasStrike = FALSE;
                 g_iPaused = FALSE;
-                llMessageLinked(LINK_SET, 0, OFID+":paused=0", NULL_KEY);
                 g_iSuspend = FALSE;
-                g_iNumFish = 0;
-                g_vSitShift.z = 0;
-                llStopAnimation("relax");
-                llStopAnimation("strike");
-                ClearHover();
-            } else {
-                g_kFisher = kAvi;
-                g_fScore = 0.0;
-                g_iHasBite = FALSE;
-                g_iHasStrike = FALSE;
-                g_iNumFish = 0;
-                // Fisher sits down
-                llRequestPermissions(g_kFisher, PERMISSION_TRIGGER_ANIMATION | PERMISSION_TAKE_CONTROLS);
+                llMessageLinked(LINK_SET, 0, OFID+":paused=0", NULL_KEY);
                 UpdateHover();
                 // Generate rod color
                 float fRed = 0.75+llFrand(0.25);
@@ -169,10 +172,10 @@ default
         
         if (g_iHasStrike) {
             // Strike pressed on bite dialog. Request a fish
-            llStopAnimation("strike");
+            if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION) llStopAnimation("strike");
             g_iHasStrike=FALSE;
             llShout(OPENFISHING_CHANNEL, OFID+":get_fish:"+(string)g_kFisher);
-            llStartAnimation("relax");
+            if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION) llStartAnimation("relax");
         } else  if (g_iHasBite==FALSE) {
             // Set up a new bite
             g_iHasBite=TRUE;
@@ -181,7 +184,8 @@ default
                 PRIM_FLEXIBLE, TRUE, 3, 0, 2, 0, 4.5, <0,-0.02,-0.2>
             ]);
             if (llGetInventoryKey("bite")!=NULL_KEY) llPlaySound("bite", 1.0);
-            llStartAnimation("express_surprise_emote");
+            if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION)
+                llStartAnimation("express_surprise_emote");
             // And offer a dialog with a strike action
             g_iDialogChan = GenerateNegChannel();
             g_iDialogH = llListen(g_iDialogChan, "", NULL_KEY, "Strike!");
@@ -304,7 +308,8 @@ default
                     // A fish has been caught
                     g_iNumFish++;
                     g_fScore += fFishWeight;
-                    llStartAnimation("express_toothsmile");
+                    if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION)
+                        llStartAnimation("express_toothsmile");
                     if (llGetInventoryKey("yay")!=NULL_KEY) llPlaySound("yay",1.0);
                     UpdateHover();
                     llWhisper(0, llGetDisplayName(g_kFisher)+" caught a "+PrettyFloat(fFishWeight)+"lb "+sFishName+"!");
@@ -325,7 +330,8 @@ default
                 } else {
                     // No fish has been caught
                     if (llGetInventoryKey("aww")!=NULL_KEY) llPlaySound("aww", 1.0);
-                    llStartAnimation("express_sad_emote");
+                    if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION)
+                        llStartAnimation("express_sad_emote");
                     llWhisper(0, "Aww, the fish wriggled free :(");
                     // Show rod straight and unrotated
                     llSetLinkPrimitiveParamsFast(g_iLinkRod, [
@@ -340,9 +346,11 @@ default
             llSetTimerEvent(0);
             llListenRemove(g_iDialogH);
             if (llGetInventoryKey("reel_in")!=NULL_KEY) llPlaySound("reel_in", 1.0);
-            llStopAnimation("relax");
-            llStartAnimation("strike");
-            llStartAnimation("express_smile");
+            if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION) {
+                llStopAnimation("relax");
+                llStartAnimation("strike");
+                llStartAnimation("express_smile");
+            }
             // Set rod positioned and rotated to strike orientation
             llSetLinkPrimitiveParamsFast(g_iLinkRod, [
                 PRIM_POS_LOCAL, g_vRodPosStrike,
