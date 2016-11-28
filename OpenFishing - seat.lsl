@@ -62,7 +62,6 @@ integer GetLinkByName(string sName)
 float GenerateWait()
 {
     float f = 20.0+llFrand(160);
-    //llInstantMessage(g_kFisher, "debug: next fish in "+(string)f+" seconds");
     return f;
 }
 
@@ -135,7 +134,7 @@ default
                 g_iHasStrike = FALSE;
                 g_iPaused = FALSE;
                 g_iSuspend = FALSE;
-                llMessageLinked(LINK_SET, 0, OFID+":paused=0", NULL_KEY);
+                llMessageLinked(LINK_SET, 0, OFID+":unpaused", NULL_KEY);
                 UpdateHover();
                 // Generate rod color
                 float fRed = 0.75+llFrand(0.25);
@@ -205,7 +204,14 @@ default
                 PRIM_ROT_LOCAL, g_rRodRot
             ]);
             llInstantMessage(g_kFisher, "The fish got away");
-            llSetTimerEvent(GenerateWait());
+            if (g_iSuspend==0) {
+                llSetTimerEvent(GenerateWait());                
+            } else if (g_iSuspend==1) {
+                // Suspend was scheduled, so start it
+                g_iSuspend=2;
+                llMessageLinked(LINK_SET, 0, OFID+":suspended", NULL_KEY);
+                llSetTimerEvent(0);
+            }
         }
 
     }
@@ -218,14 +224,14 @@ default
         key kToucher = llDetectedKey(0);
         if (kToucher!=g_kFisher) return;
         
-        if (g_iPaused) {
+        if (g_iPaused == TRUE) {
             g_iPaused = FALSE;
-            llMessageLinked(LINK_SET, 0, OFID+":paused=0", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+"unpaused", NULL_KEY);
             llSetTimerEvent(GenerateWait());
             UpdateHover();
-        } else if (g_iSuspend == FALSE) {
+        } else if (g_iPaused == FALSE && g_iSuspend == FALSE) {
             g_iPaused = TRUE;
-            llMessageLinked(LINK_SET, 0, OFID+":paused=1", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+"paused", NULL_KEY);
             llSetTimerEvent(0);
             if (g_iLinkScore != -32768) llSetLinkPrimitiveParamsFast(g_iLinkScore,
                                             [PRIM_TEXT, "< PAUSED >", <1,1,1>, 1] );
@@ -240,16 +246,19 @@ default
         
         string sKey = llList2String(l, 1);
         
-        if (sKey == "suspend") {
-            integer sVal = llList2Integer(l, 2);
-            if (sVal==1) {
-                g_iSuspend = TRUE;
+        if (sKey == "req_suspend") {
+            if (g_iHasBite || g_iHasStrike) {
+                g_iSuspend = 1; // schedule
+            } else {
+                g_iSuspend = 2;
+                llMessageLinked(LINK_SET, 0, OFID+":suspended", NULL_KEY);
                 llSetTimerEvent(0);
-            } else if (sVal==0) {
-                g_iSuspend = FALSE;                
-                llSetTimerEvent(GenerateWait());
-                UpdateHover();
             }
+        } else if (sKey == "end_suspend") {
+            g_iSuspend = 0;                
+            llSetTimerEvent(GenerateWait());
+            UpdateHover();        
+            llMessageLinked(LINK_SET, 0, OFID+":resumed", NULL_KEY);
         }
     }
 
@@ -325,7 +334,14 @@ default
                         llUnSit(g_kFisher);                    
                     } else {
                         // More fish to go, generate a new waiting time
-                        llSetTimerEvent(GenerateWait());
+                        if (g_iSuspend==0) {
+                            llSetTimerEvent(GenerateWait());                
+                        } else if (g_iSuspend==1) {
+                            // Suspend was scheduled, so start it
+                            g_iSuspend=2;
+                            llMessageLinked(LINK_SET, 0, OFID+":suspended", NULL_KEY);
+                            llSetTimerEvent(0);
+                        }
                     }
                 } else {
                     // No fish has been caught
