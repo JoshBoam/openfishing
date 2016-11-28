@@ -123,7 +123,7 @@ default
             llListenRemove(g_iListenH);
             g_iTimerMode=TIMER_MODE_PREP_QUESTION;
             llSetTimerEvent(0);
-            llMessageLinked(LINK_SET, 0, OFID+"end_suspend", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+":end_suspend", NULL_KEY);
         }
     }
     
@@ -132,7 +132,7 @@ default
         llListenRemove(g_iListenH);
         llSetTimerEvent(0);
         
-        llMessageLinked(LINK_SET, 0, OFID+"end_suspend", NULL_KEY);
+        llMessageLinked(LINK_SET, 0, OFID+":end_suspend", NULL_KEY);
         
         if ((integer)sMessage==g_iAnswer) {
             if (NOTICE_SITTER) llInstantMessage(g_kFisher, "Correct.");

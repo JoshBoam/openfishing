@@ -226,12 +226,12 @@ default
         
         if (g_iPaused == TRUE) {
             g_iPaused = FALSE;
-            llMessageLinked(LINK_SET, 0, OFID+"unpaused", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+":unpaused", NULL_KEY);
             llSetTimerEvent(GenerateWait());
             UpdateHover();
         } else if (g_iPaused == FALSE && g_iSuspend == FALSE) {
             g_iPaused = TRUE;
-            llMessageLinked(LINK_SET, 0, OFID+"paused", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+":paused", NULL_KEY);
             llSetTimerEvent(0);
             if (g_iLinkScore != -32768) llSetLinkPrimitiveParamsFast(g_iLinkScore,
                                             [PRIM_TEXT, "< PAUSED >", <1,1,1>, 1] );
