@@ -123,13 +123,10 @@ default
     run_time_permissions(integer what)
     {
         if (what & PERMISSION_DEBIT) {
-            llOwnerSay("\nInitializing: 1 "+g_sCurrency+" has been paid to yourself.\n\n"+
+            llOwnerSay("\nPot initialized\n\n"+
                         "Podex: No additional steps required\n"+
                         "OMC: Authorize the object on https://www.virwox.com\n"+
-                        "Gloebit: Authorize the object on https://www.gloebit.com\n\n");
-            // The following is needed to trigger creating a subscription
-            // if we use Gloebit as currency:
-            llGiveMoney(llGetOwner(), 1);
+                        "Gloebit: Authorize the object (subscription) on https://www.gloebit.com\n\n");
         }
     }
     
