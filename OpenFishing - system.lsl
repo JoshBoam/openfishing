@@ -182,8 +182,8 @@ OptionDialog(key kAV)
     list lButtons;
 
     if (kAV==llGetOwner()) {
-        if (g_iGroupOnly==TRUE) lButtons += "[X] Group";
-        else lButtons += "[ ] Group";
+        if (g_iGroupOnly==TRUE) lButtons += "☑ Group";
+        else lButtons += "☐ Group";
 
         lButtons += ["Information", "Close", "Conclude", "Abort", "Duration.."];
     } else {
@@ -390,12 +390,12 @@ default
                 if (kID==llGetOwner()) {
                     DurationDialog(kID);
                 }
-            } else if (sMessage=="[ ] Group") {
+            } else if (sMessage=="☐ Group") {
                 if (kID==llGetOwner()) {
                     g_iGroupOnly = TRUE;
                     UpdateDurationDisplay();
                 }
-            } else if (sMessage=="[X] Group") {
+            } else if (sMessage=="☑ Group") {
                 if (kID==llGetOwner()) {
                     g_iGroupOnly = FALSE;                
                     UpdateDurationDisplay();
