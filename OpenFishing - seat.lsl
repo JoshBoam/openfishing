@@ -118,7 +118,7 @@ default
                     PRIM_ROT_LOCAL, g_rRodRot,
                     PRIM_COLOR, ALL_SIDES, <1,1,1>, 0
                 ]);
-                llShout(OPENFISHING_CHANNEL, OFID+":transfer_score:"+g_kFisher+":"+PrettyFloat(g_fScore));
+                llShout(OPENFISHING_CHANNEL, OFID+"|transfer_score|"+g_kFisher+"|"+PrettyFloat(g_fScore));
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
                 ClearHover();
@@ -134,7 +134,7 @@ default
                 g_iHasStrike = FALSE;
                 g_iPaused = FALSE;
                 g_iSuspend = FALSE;
-                llMessageLinked(LINK_SET, 0, OFID+":unpaused", NULL_KEY);
+                llMessageLinked(LINK_SET, 0, OFID+"|unpaused", NULL_KEY);
                 UpdateHover();
                 // Generate rod color
                 float fRed = 0.75+llFrand(0.25);
@@ -173,7 +173,7 @@ default
             // Strike pressed on bite dialog. Request a fish
             if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION) llStopAnimation("strike");
             g_iHasStrike=FALSE;
-            llShout(OPENFISHING_CHANNEL, OFID+":get_fish:"+(string)g_kFisher);
+            llShout(OPENFISHING_CHANNEL, OFID+"|get_fish|"+(string)g_kFisher);
             if (llGetPermissions() & PERMISSION_TRIGGER_ANIMATION) llStartAnimation("relax");
         } else  if (g_iHasBite==FALSE) {
             // Set up a new bite
@@ -209,7 +209,7 @@ default
             } else if (g_iSuspend==1) {
                 // Suspend was scheduled, so start it
                 g_iSuspend=2;
-                llMessageLinked(LINK_SET, 0, OFID+":suspended", NULL_KEY);
+                llMessageLinked(LINK_SET, 0, OFID+"|suspended", NULL_KEY);
                 llSetTimerEvent(0);
             }
         }
@@ -226,12 +226,12 @@ default
         
         if (g_iPaused == TRUE) {
             g_iPaused = FALSE;
-            llMessageLinked(LINK_SET, 0, OFID+":unpaused", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+"|unpaused", NULL_KEY);
             llSetTimerEvent(GenerateWait());
             UpdateHover();
         } else if (g_iPaused == FALSE && g_iSuspend == FALSE) {
             g_iPaused = TRUE;
-            llMessageLinked(LINK_SET, 0, OFID+":paused", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+"|paused", NULL_KEY);
             llSetTimerEvent(0);
             if (g_iLinkScore != -32768) llSetLinkPrimitiveParamsFast(g_iLinkScore,
                                             [PRIM_TEXT, "< PAUSED >", <1,1,1>, 1] );
@@ -240,7 +240,7 @@ default
     
     link_message(integer iSender, integer iNum, string sText, key kID)
     {
-        list l = llParseString2List(sText, [":", "="], []);
+        list l = llParseStringKeepNulls(sText, ["|", "="], []);
         
         if (llList2String(l, 0)!=OFID) return;
         
@@ -251,14 +251,17 @@ default
                 g_iSuspend = 1; // schedule
             } else {
                 g_iSuspend = 2;
-                llMessageLinked(LINK_SET, 0, OFID+":suspended", NULL_KEY);
+                llMessageLinked(LINK_SET, 0, OFID+"|suspended", NULL_KEY);
                 llSetTimerEvent(0);
             }
         } else if (sKey == "end_suspend") {
             g_iSuspend = 0;                
             llSetTimerEvent(GenerateWait());
             UpdateHover();        
-            llMessageLinked(LINK_SET, 0, OFID+":resumed", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+"|resumed", NULL_KEY);
+        } else if (sKey == "unsit") {
+            llSetTimerEvent(0);
+            llUnSit(g_kFisher);
         }
     }
 
@@ -298,7 +301,7 @@ default
             // Security
             if (llGetOwnerKey(kID)!=llGetOwner()) return;    
 
-            list lMessage = llParseString2List(sMessage, [":"], []);
+            list lMessage = llParseString2List(sMessage, ["|"], []);
             if (llList2String(lMessage,0)!=OFID) return;
 
             string sCmd=llList2String(lMessage,1);
@@ -307,7 +310,7 @@ default
                 key kChair = llList2Key(lMessage, 2);
                 if (kChair!=llGetKey()) return;
                 llWhisper(0, llList2String(lMessage, 3));
-            } else if (sCmd=="fish") {
+            } else if (sCmd=="fish_offer") {
                 // A response to a 'getfish' request is being offered
                 key kChair = llList2Key(lMessage, 2);
                 if (kChair!=llGetKey()) return;
@@ -339,7 +342,7 @@ default
                         } else if (g_iSuspend==1) {
                             // Suspend was scheduled, so start it
                             g_iSuspend=2;
-                            llMessageLinked(LINK_SET, 0, OFID+":suspended", NULL_KEY);
+                            llMessageLinked(LINK_SET, 0, OFID+"|suspended", NULL_KEY);
                             llSetTimerEvent(0);
                         }
                     }

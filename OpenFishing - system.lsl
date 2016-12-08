@@ -121,26 +121,37 @@ UpdateScoreDisplay()
     }
 }
 
+// Hypergrid capable InstantMessage
+integer hgInstantMessage(string sName, string sMessage)
+{
+    integer idx = llSubStringIndex(sName, " ");
+    if (idx == -1) return idx;
+    string sFirst = llGetSubString(sName, 0, idx-1);
+    string sLast = llGetSubString(sName, idx+1, -1);
+    llInstantMessage(osAvatarName2Key(sFirst, sLast), sMessage);
+    return 0;
+}
+
 Conclude()
 {
     string sInfo = "\n\nWe hope to see you soon again at:\n\n\t"+osGetGridHomeURI()+":"+llGetRegionName()+"\n\n";
-    if (g_kWinnerGold!=NULL_KEY) llInstantMessage(g_kWinnerGold,
+    if (g_kWinnerGold!=NULL_KEY) hgInstantMessage(g_sNameGold,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreGold)+
         " you have won the GOLD TROPHY!"+sInfo);
-    if (g_kWinnerSilver!=NULL_KEY) llInstantMessage(g_kWinnerSilver,
+    if (g_kWinnerSilver!=NULL_KEY) hgInstantMessage(g_sNameSilver,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreSilver)+
         " you have won the SILVER TROPHY"+sInfo);
-    if (g_kWinnerBronze!=NULL_KEY) llInstantMessage(g_kWinnerBronze,
+    if (g_kWinnerBronze!=NULL_KEY) hgInstantMessage(g_sNameBronze,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBronze)+
         "you have won the BRONZE TROPHY"+sInfo);
-    if (g_kWinnerBiggest!=NULL_KEY) llInstantMessage(g_kWinnerBiggest,
+    if (g_kWinnerBiggest!=NULL_KEY) hgInstantMessage(g_sNameBiggest,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBiggest)+
         "you have won the BIGGEST FISH"+sInfo);
         
-    llShout(OPENFISHING_CHANNEL, OFID+":conclude:"+(string)g_kWinnerGold+":"+
-                                                (string)g_kWinnerSilver+":"+
-                                                (string)g_kWinnerBronze+":"+
-                                                (string)g_kWinnerBiggest);
+    llShout(OPENFISHING_CHANNEL, OFID+"|conclude|"+(string)g_sNameGold+"|"+
+                                                (string)g_sNameSilver+"|"+
+                                                (string)g_sNameBronze+"|"+
+                                                (string)g_sNameBiggest);
 }
 
 string PrettyFloat(float f)
@@ -161,19 +172,19 @@ GenerateFish(key kRod, key kAvi)
         float fMax = llList2Float(FISHES, 2+(iFish*FISH_STRIDE));
         string sFishName = llList2String(FISHES, (iFish*FISH_STRIDE));
         float fFishSize = fMin + llFrand(fMax-fMin);
-        llRegionSayTo(kRod, OPENFISHING_CHANNEL, OFID+":fish:"+
-            (string)kRod+":"+sFishName+":"+PrettyFloat(fFishSize));
+        llRegionSayTo(kRod, OPENFISHING_CHANNEL, OFID+"|fish_offer|"+
+            (string)kRod+"|"+sFishName+"|"+PrettyFloat(fFishSize));
         if (fFishSize > g_fScoreBiggest) {
             g_fScoreBiggest = fFishSize;
             g_kWinnerBiggest = kAvi;
-            g_sNameBiggest = llGetDisplayName(kAvi);
+            g_sNameBiggest = llKey2Name(kAvi);
             llSay(PUBLIC_CHANNEL, g_sNameBiggest+" caught the biggest fish so far!");
             UpdateScoreDisplay();
             llPlaySound("biggest", 1.0);
         }
     } else {
         // Fish wriggled free, return no fish name and zero weight
-        llRegionSayTo(kRod, OPENFISHING_CHANNEL, OFID+":fish:"+(string)kRod+"::0.0");
+        llRegionSayTo(kRod, OPENFISHING_CHANNEL, OFID+"|fish_offer|"+(string)kRod+"||0.0");
     }
 }
 
@@ -239,7 +250,7 @@ Reset()
     UpdateTime();
     UpdateDurationDisplay();
     // Reset price givers
-    llShout(OPENFISHING_CHANNEL, OFID+":reset");
+    llShout(OPENFISHING_CHANNEL, OFID+"|reset");
     llSetTimerEvent(60);
 }
 
@@ -298,7 +309,7 @@ default
             // Security
             if (llGetOwnerKey(kID)!=llGetOwner()) return;
 
-            list lMessage = llParseString2List(sMessage, [":"], []);
+            list lMessage = llParseStringKeepNulls(sMessage, ["|"], []);
             if (llList2String(lMessage,0)!=OFID) return;
 
             string sCmd=llList2String(lMessage,1);
@@ -324,10 +335,10 @@ default
                     // put new fisher -> gold
                     g_fScoreGold = fScore;
                     g_kWinnerGold = kAvi;
-                    g_sNameGold = llGetDisplayName(g_kWinnerGold);
+                    g_sNameGold = llKey2Name(g_kWinnerGold);
                     UpdateScoreDisplay();
                     llPlaySound("gold", 1.0);
-                    llSay(PUBLIC_CHANNEL,"Congratulations "+g_sNameGold+
+                    llSay(PUBLIC_CHANNEL,"Congratulations "+llGetDisplayName(g_kWinnerGold)+
                         "!! With a score of "+PrettyFloat(g_fScoreGold)+
                         "lbs you got the GOLD TROPHY!! Let's hope you can hold on to it until the contest ends.");
                     return;
@@ -341,9 +352,9 @@ default
                     // put new fisher -> silver
                     g_fScoreSilver = fScore;
                     g_kWinnerSilver = kAvi;
-                    g_sNameSilver = llGetDisplayName(g_kWinnerSilver);
+                    g_sNameSilver = llKey2Name(g_kWinnerSilver);
                     UpdateScoreDisplay();
-                    llSay(PUBLIC_CHANNEL,"Congratulations "+g_sNameSilver+
+                    llSay(PUBLIC_CHANNEL,"Congratulations "+llGetDisplayName(g_kWinnerSilver)+
                         "!! With a score of "+PrettyFloat(g_fScoreSilver)+
                         "lbs you got the SILVER TROPHY!! Will it be enough to secure a prize at the end of the tournament?");
                     return;
@@ -351,9 +362,9 @@ default
                     // put same/new fisher -> bronze
                     g_fScoreBronze = fScore;                
                     g_kWinnerBronze = kAvi;
-                    g_sNameBronze = llGetDisplayName(g_kWinnerBronze);
+                    g_sNameBronze = llKey2Name(g_kWinnerBronze);
                     UpdateScoreDisplay();
-                    llSay(PUBLIC_CHANNEL,"Congratulations "+g_sNameBronze+
+                    llSay(PUBLIC_CHANNEL,"Congratulations "+llGetDisplayName(g_kWinnerBronze)+
                         "!! With a score of "+PrettyFloat(g_fScoreBronze)+
                         "lbs you got the BRONZE TROPHY!! I hope you don't get knocked off the trophies before the end!");
                     return;

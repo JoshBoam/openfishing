@@ -99,27 +99,45 @@ Reset()
     }
 }
 
+Init()
+{
+    ParseConfig();
+    if (g_iStartAmount && g_iPrizeTotal==0) g_iPrizeTotal = g_iStartAmount;
+    CalcPrizes();
+    UpdateHover();
+        
+    g_iListenHandle = llListen(OPENFISHING_CHANNEL, "", NULL_KEY, "");
+        
+    if (g_iAllowTopup) {
+        llSetPayPrice(10, [1,5,10,20]);
+        llSetClickAction(CLICK_ACTION_PAY);
+    } else {
+        llSetClickAction(CLICK_ACTION_TOUCH);            
+    }
+    if ((llGetPermissions() & PERMISSION_DEBIT)==0) llRequestPermissions(llGetOwner(), PERMISSION_DEBIT);
+}
+
+key hgName2Key(string sName)
+{
+    integer idx = llSubStringIndex(sName, " ");
+    if (idx == -1) return NULL_KEY;
+    string sFirst = llGetSubString(sName, 0, idx-1);
+    string sLast = llGetSubString(sName, idx+1, -1);
+    return osAvatarName2Key(sFirst, sLast);
+}
+
 default
 {
     state_entry()
     {
-        ParseConfig();
-        if (g_iStartAmount && g_iPrizeTotal==0) g_iPrizeTotal = g_iStartAmount;
-        CalcPrizes();
-        UpdateHover();
-        
-        g_iListenHandle = llListen(OPENFISHING_CHANNEL, "", NULL_KEY, "");
-        
-        if (g_iAllowTopup) {
-            llSetPayPrice(10, [1,5,10,20]);
-            llSetClickAction(CLICK_ACTION_PAY);
-        } else {
-            llSetClickAction(CLICK_ACTION_TOUCH);            
-        }
-        
-        if ((llGetPermissions() & PERMISSION_DEBIT)==0) llRequestPermissions(llGetOwner(), PERMISSION_DEBIT);
+        Init();
     }
-    
+
+    on_rez(integer start_param)
+    {
+        Init();
+    }
+
     run_time_permissions(integer what)
     {
         if (what & PERMISSION_DEBIT) {
@@ -144,7 +162,7 @@ default
         // Security
         if (llGetOwnerKey(kID)!=llGetOwner()) return;
         
-        list lMessage = llParseString2List(sMessage, [":"], []);
+        list lMessage = llParseStringKeepNulls(sMessage, ["|"], []);
         if (llList2String(lMessage,0)!=OFID) return;
 
         string sCmd=llList2String(lMessage,1);
@@ -156,29 +174,30 @@ default
             llSetClickAction(CLICK_ACTION_TOUCH);
             llSetText("Paying out", <1,1,1>, 1);
             // Message received in the form of:
-            // :payout:kGold:kSilver:kBronze:kBiggest
-            key kWinner = llList2Key(lMessage, 2);
+            // |conclude|string sNameGold|string sNameSilver|string sNameBronze|string sNameBiggest
+            key kWinner = hgName2Key(llList2String(lMessage, 2));
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeGold > 0) {
                 llGiveMoney(kWinner, g_iPrizeGold);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeGold+g_sCurrency);
+                llSleep(5);            
             }
-            llSleep(5);
-            kWinner = llList2Key(lMessage, 3);
+            kWinner = hgName2Key(llList2String(lMessage, 3));
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeSilver > 0) {
                 llGiveMoney(kWinner, g_iPrizeSilver);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeSilver+g_sCurrency);
+                llSleep(5);
             }
-            llSleep(5);
-            kWinner = llList2Key(lMessage, 4);
+            kWinner = hgName2Key(llList2String(lMessage, 4));
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeBronze > 0) {
                 llGiveMoney(kWinner, g_iPrizeBronze);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeBronze+g_sCurrency);
+                llSleep(5);
             }
-            llSleep(5);
-            kWinner = llList2Key(lMessage, 5);
+            kWinner = hgName2Key(llList2String(lMessage, 5));
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeBiggest > 0) {
                 llGiveMoney(kWinner, g_iPrizeBiggest);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeBiggest+g_sCurrency);
+                llSleep(5);
             }
             Reset();
         } else if (sCmd=="reset") {

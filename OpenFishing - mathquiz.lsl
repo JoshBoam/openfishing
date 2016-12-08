@@ -55,7 +55,7 @@ default
     
     link_message(integer iSender, integer iNum, string sText, key kID)
     {
-        list l = llParseString2List(sText, [":", "="], []);
+        list l = llParseString2List(sText, ["|", "="], []);
         
         if (llList2String(l, 0)!=OFID) return;
         
@@ -81,7 +81,7 @@ default
 
             // Request main script to suspend
             // We will receive a 'suspended' linked message when ready
-            llMessageLinked(LINK_SET, 0, OFID+":req_suspend", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+"|req_suspend", NULL_KEY);
         } else if (g_iTimerMode==TIMER_MODE_QUESTION) {
             llSetTimerEvent(0);            
             if (g_iPaused) return;
@@ -116,14 +116,13 @@ default
             g_iTimerMode=TIMER_MODE_ANSWER;
             llSetTimerEvent(ANSWER_TIME);            
         } else if (g_iTimerMode==TIMER_MODE_ANSWER) {
-            if (NOTICE_SITTER) llInstantMessage(g_kFisher, "You failed to answer the mathquiz in time.");
-            if (NOTICE_OWNER) llOwnerSay(llKey2Name(g_kFisher)+" failed to answer the mathquiz in time.");
-            llUnSit(g_kFisher); // you could do really mean stuff here, even orbit them.
-            
-            llListenRemove(g_iListenH);
-            g_iTimerMode=TIMER_MODE_PREP_QUESTION;
             llSetTimerEvent(0);
-            llMessageLinked(LINK_SET, 0, OFID+":end_suspend", NULL_KEY);
+            llListenRemove(g_iListenH);
+            if (NOTICE_SITTER) llInstantMessage(g_kFisher, "You failed to answer the mathquiz in time.");
+            if (NOTICE_OWNER) llOwnerSay(llKey2Name(g_kFisher)+" failed to answer the mathquiz in time.");        
+            llMessageLinked(LINK_SET, 0, OFID+"|end_suspend", NULL_KEY);
+            llMessageLinked(LINK_SET, 0, OFID+"|unsit", NULL_KEY);
+            g_iTimerMode=TIMER_MODE_PREP_QUESTION;
         }
     }
     
@@ -132,7 +131,7 @@ default
         llListenRemove(g_iListenH);
         llSetTimerEvent(0);
         
-        llMessageLinked(LINK_SET, 0, OFID+":end_suspend", NULL_KEY);
+        llMessageLinked(LINK_SET, 0, OFID+"|end_suspend", NULL_KEY);
         
         if ((integer)sMessage==g_iAnswer) {
             if (NOTICE_SITTER) llInstantMessage(g_kFisher, "Correct.");
@@ -143,7 +142,7 @@ default
         } else {
             if (NOTICE_SITTER) llInstantMessage(g_kFisher, "You failed to provide the correct answer.");
             if (NOTICE_OWNER) llOwnerSay(llKey2Name(g_kFisher)+" failed to provide the correct answer.");
-            llUnSit(g_kFisher);
+            llMessageLinked(LINK_SET, 0, OFID+"|unsit", NULL_KEY);
         }
     }
 }
