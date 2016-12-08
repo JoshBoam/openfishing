@@ -14,8 +14,8 @@ string g_sSubHover;
 UpdateHover()
 {
     string sHover = "OpenFishing Prizegiver\n";
-    if (g_sSubHover!="") sHover+=g_sSubHover+"\n\n";
-    sHover+= "Gold: "+(string)g_sPrizeGold+"\n"+
+    if (g_sSubHover!="") sHover+=g_sSubHover+"\n";
+    sHover+= " \nGold: "+(string)g_sPrizeGold+"\n"+
              "Silver: "+(string)g_sPrizeSilver+"\n"+
              "Bronze: "+(string)g_sPrizeBronze+"\n"+
              "Biggest catch: "+(string)g_sPrizeBiggest;
