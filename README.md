@@ -1,7 +1,8 @@
 # openfishing
-A fishing game for Open Simulator
+A fun fishing game for Open Simulator
 
-Sorry, no final release yet, but you can already try the game inworld
+Sorry, no final release yet, but you can already try the game in OsGrid:
 
-Go to the sim 'New Oaks' in OsGrid  
-For hypergridders the address is http://hg.osgrid.org:80:New Oaks
+http://opensimworld.com/hop/76133-Seven-Oaks
+
+For hypergridders the address is http://hg.osgrid.org:80:Seven Oaks
