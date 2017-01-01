@@ -1,0 +1,62 @@
+
+O p e n  F i s h i n g - I n f o r m a t i o n
+
+
+Basics
+--------
+
+This game is heavily inspired by Match Fishing.
+
+Sit on a chair to start, and the rod will appear. Pose can be adjusted with PageUp/PageDown. The goal is to catch the highest weight total with 20 caught fishes. When a fish bites, a dialog pops up with a Strike! button.
+
+After your 20th fish, you'll be stood up and the score will be transferred to the Trophy Stand. If yours is high enough, your score might be eligible for a prize. The score can be further improved by having more tries, until the contest time runs out (typically 24 hours).
+
+When the contest ends, the highest 3 scores will be awarded and the person who caught the biggest fish will get a prize as well.
+
+
+Anti-bot
+---------
+
+If the area owner decided to use the mathquiz anti-bot plugin, the chair will ask you a math question at random intervals. When answered not in time, or with the wrong answer, you will be stood up.
+
+If you want to go AFK for a while, just click the chair to pause the game. No math quizz will pop up during that time but no fish can be caught either.
+
+
+Scoring
+---------
+
+Initial tests have shown the total weight to be around 200 lb, but with real differences, as low as ~140lb and as high as 280lb. Winning can take some tries, there is no one seat that always gives good fish :)
+
+
+Prizes
+-------
+
+Depending on the fish area, there can be two kinds of prizes; cash or 'physical' prizes. Both kind of prizegivers may be rezzed as well as none, they are options for the area owner.
+
+When a hypergrid currency is used such as Gloebit or OMC, the money giver is able to pay out to hypergrid fishers if your avatar has signed up with such a currency system.
+
+Care has been taken for the 'physical' prizegiver so that prize assets are transferred to your home grid. If you think you won but didn't receive your prize, please look in My Suitcase.
+
+
+Bugs
+-----
+
+I'm still finishing this project, so consider it beta mode.
+
+Things that need attention:
+* Instant messages send to offline hypergrid avatars never arrive. This is a bug in OpenSim.
+* Transferring physical prizes to offline hypergrid avatars doesn't work unless this patch is installed on the simulator:  http://opensimulator.org/mantis/view.php?id=8080   (hopefully it'll be merged in master soon)
+
+
+Developing
+-------------
+
+The system script can be used for making your own trophy stands or anything. Uses named linked prims to display hovertext on. If a link called 'hover_all' is found, it will just use a single hovertext prim so the trophy stand can be a compact 1 prim object.
+
+The seat script is very flexible to allow making different kind of seats and uses named links also. Currently only a simple fishing chair exists, other seats might become: a boat, a (dock-)pillow, a treestump, a rock.
+
+An optional mathquizz script can be put into seats, which works as protection against automated fishing bots (yes, they exist unfortunately)
+
+The pot script pays out on your behalf at the end of the contest. It works with hypergrid currency such as Gloebit and OMC, and more traditional currency such as Podex-based and Linden.
+
+The prizegiver script awards any inventory type prize, for when you don't want or can't award cash prizes. Any inventory item can be put in as prizes and configured on the notecard.
