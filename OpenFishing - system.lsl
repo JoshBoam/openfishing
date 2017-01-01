@@ -319,6 +319,10 @@ default
             } else if (sCmd=="transfer_score") {
                 key kAvi=llList2Key(lMessage,2);
                 if (kAvi==NULL_KEY||kAvi=="") return;
+                if (g_iGroupOnly==TRUE && llSameGroup(kAvi)==FALSE) {
+                    llInstantMessage(kAvi, "This contest is group-only. You are disqualified because you didn't wear your grouptag");
+                    return;
+                }
                 float fScore=llList2Float(lMessage,3);
                 if (fScore > g_fScoreGold) {
                     // Bump if not already on gold
