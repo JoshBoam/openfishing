@@ -28,7 +28,8 @@ integer g_iGroupOnly = 0;
 
 integer g_iDuration = 86400;  // 24 hours = 60*60*24 (in seconds)
 integer g_iMinutesLeft;
-integer g_iStartTime;        // unix
+integer g_iStartTime;         // unix
+float   TIMER_FREQ = 10.0;
 
 list FISHES = [
                 "Barbel", 2.2, 9.0,   // max=typical*2
@@ -47,6 +48,9 @@ integer FISH_STRIDE = 3;
 
 integer g_iMenuChannel;
 integer g_iMenuHandle;
+
+integer g_iDialogTimer = 0;
+integer DIALOG_TIMEOUT = 15; // not exact, worst case is (TIMER_FREQ+DIALOG_TIMEOUT)
 
 integer GetLinkByName(string sName)
 {
@@ -203,6 +207,7 @@ OptionDialog(key kAV)
 
     string sMsg = "Time left: "+(integer)g_iMinutesLeft+" minutes";
 
+    g_iDialogTimer = llGetUnixTime();
     g_iMenuChannel = -(1+(integer)llFrand(2147483647));
     g_iMenuHandle = llListen(g_iMenuChannel, "", kAV, "");
     llDialog(kAV, "\nO P E N F I S H I N G\n\n"+sMsg, lButtons, g_iMenuChannel);    
@@ -214,6 +219,7 @@ DurationDialog(key kAV)
 
     string sMsg = "Choose time for the new tournament";
 
+    g_iDialogTimer = llGetUnixTime();
     g_iMenuChannel = -(1+(integer)llFrand(2147483647));
     g_iMenuHandle = llListen(g_iMenuChannel, "", kAV, "");
     llDialog(kAV, "\nO P E N F I S H I N G\n\n"+sMsg, lButtons, g_iMenuChannel);    
@@ -251,7 +257,7 @@ Reset()
     UpdateDurationDisplay();
     // Reset price givers
     llShout(OPENFISHING_CHANNEL, OFID+"|reset");
-    llSetTimerEvent(60);
+    llSetTimerEvent(TIMER_FREQ);
 }
 
 UpdateTime()
@@ -276,7 +282,7 @@ default
         UpdateTime();
         UpdateScoreDisplay();
         UpdateDurationDisplay();
-        llSetTimerEvent(60);
+        llSetTimerEvent(TIMER_FREQ);
     }
 /*  
     on_rez(integer start_param)
@@ -294,6 +300,11 @@ default
             Reset();
         } else {
             UpdateDurationDisplay();
+        }
+        if (g_iDialogTimer && llGetUnixTime()>=(g_iDialogTimer+DIALOG_TIMEOUT)) {
+            g_iDialogTimer = 0;
+            llListenRemove(g_iMenuHandle);
+            //llWhisper(0, "Dialog menu timed out");
         }
     }
     
@@ -391,6 +402,7 @@ default
                 }
             } //transfer_score
         } else if (g_iMenuChannel==iChannel) {
+            g_iDialogTimer = 0;
             llListenRemove(g_iMenuHandle);
             if (sMessage=="Conclude") {
                 if (kID==llGetOwner()) {
