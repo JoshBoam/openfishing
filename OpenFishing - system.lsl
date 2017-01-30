@@ -205,7 +205,7 @@ OptionDialog(key kAV)
         lButtons += [" ", "Information", "Close"];
     }
 
-    string sMsg = "Time left: "+(integer)g_iMinutesLeft+" minutes";
+    string sMsg = "Time left: "+(string)g_iMinutesLeft+" minutes";
 
     g_iDialogTimer = llGetUnixTime();
     g_iMenuChannel = -(1+(integer)llFrand(2147483647));
