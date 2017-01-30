@@ -141,10 +141,10 @@ Conclude()
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBiggest)+
         "you have won the BIGGEST FISH"+sInfo);
         
-    llShout(OPENFISHING_CHANNEL, OFID+"|conclude|"+(string)g_sNameGold+"|"+
-                                                (string)g_sNameSilver+"|"+
-                                                (string)g_sNameBronze+"|"+
-                                                (string)g_sNameBiggest);
+    llShout(OPENFISHING_CHANNEL, OFID+"|conclude|"+(string)g_kWinnerGold+"|"+
+                                                (string)g_kWinnerSilver+"|"+
+                                                (string)g_kWinnerBronze+"|"+
+                                                (string)g_kWinnerBiggest);
 }
 
 string PrettyFloat(float f)

@@ -29,6 +29,9 @@ string g_sCurrency = " OS";  // Just aestethic. Change to your grid currency.
 
 integer g_iInitialized = FALSE;
 
+key g_kdsConfig = NULL_KEY;
+integer g_iConfigLine = 0;
+
 UpdateHover()
 {
     string sHover = "OpenFishing Pot\n";
@@ -55,34 +58,9 @@ CalcPrizes()
 }
 
 ParseConfig()
-{   
-    integer i = 0;
-    for(i=1; i<=osGetNumberOfNotecardLines("pot.config"); i++) {
-        string line = llStringTrim(osGetNotecardLine("pot.config", i), STRING_TRIM);
-        list lPair = llParseString2List(line, ["="], []);
-        string sSetting = llList2String(lPair, 0);
-        if (llGetSubString(sSetting, 0, 0)!="#" || llGetSubString(sSetting, 0, 0)!="") {
-            if (sSetting=="prize_gold") g_iPercentGold = llList2Float(lPair, 1);
-            else if (sSetting=="prize_silver") g_iPercentSilver = llList2Float(lPair, 1);
-            else if (sSetting=="prize_bronze") g_iPercentBronze = llList2Float(lPair, 1);
-            else if (sSetting=="prize_biggest") g_iPercentBiggest = llList2Float(lPair, 1);
-            else if (sSetting=="start_amount") g_iStartAmount = llList2Integer(lPair, 1);
-            else if (sSetting=="sub_hover") g_sSubHover = llList2String(lPair, 1);
-            else if (sSetting=="currency") g_sCurrency = " "+llList2String(lPair, 1);
-            else if (sSetting=="allow_topup") {
-                string sValue=llToLower(llList2String(lPair, 1));
-                if (sValue=="true" || sValue=="yes" || sValue=="1") g_iAllowTopup=TRUE;
-                else g_iAllowTopup=FALSE;
-            }
-        }
-    }
-    
-    if ((g_iPercentGold+g_iPercentSilver+g_iPercentBronze+g_iPercentBiggest)!=100) {
-        llOwnerSay("Configuration error: the prize percentages for prize_gold, prize_silver, "+
-            "prize_bronze and prize_biggest don't add up to 100");
-    }
-    
-    UpdateHover();
+{
+    integer g_iConfigLine = 0;   
+    g_kdsConfig = llGetNotecardLine("pot.config", g_iConfigLine);
 }
 
 Reset()
@@ -99,43 +77,16 @@ Reset()
     }
 }
 
-Init()
-{
-    ParseConfig();
-    if (g_iStartAmount && g_iPrizeTotal==0) g_iPrizeTotal = g_iStartAmount;
-    CalcPrizes();
-    UpdateHover();
-        
-    g_iListenHandle = llListen(OPENFISHING_CHANNEL, "", NULL_KEY, "");
-        
-    if (g_iAllowTopup) {
-        llSetPayPrice(10, [1,5,10,20]);
-        llSetClickAction(CLICK_ACTION_PAY);
-    } else {
-        llSetClickAction(CLICK_ACTION_TOUCH);            
-    }
-    if ((llGetPermissions() & PERMISSION_DEBIT)==0) llRequestPermissions(llGetOwner(), PERMISSION_DEBIT);
-}
-
-key hgName2Key(string sName)
-{
-    integer idx = llSubStringIndex(sName, " ");
-    if (idx == -1) return NULL_KEY;
-    string sFirst = llGetSubString(sName, 0, idx-1);
-    string sLast = llGetSubString(sName, idx+1, -1);
-    return osAvatarName2Key(sFirst, sLast);
-}
-
 default
 {
     state_entry()
     {
-        Init();
+        ParseConfig();
     }
 
     on_rez(integer start_param)
     {
-        Init();
+        ParseConfig();
     }
 
     run_time_permissions(integer what)
@@ -175,25 +126,25 @@ default
             llSetText("Paying out", <1,1,1>, 1);
             // Message received in the form of:
             // |conclude|string sNameGold|string sNameSilver|string sNameBronze|string sNameBiggest
-            key kWinner = hgName2Key(llList2String(lMessage, 2));
+            key kWinner = llList2Key(lMessage, 2);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeGold > 0) {
                 llGiveMoney(kWinner, g_iPrizeGold);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeGold+g_sCurrency);
                 llSleep(5);            
             }
-            kWinner = hgName2Key(llList2String(lMessage, 3));
+            kWinner = llList2Key(lMessage, 3);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeSilver > 0) {
                 llGiveMoney(kWinner, g_iPrizeSilver);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeSilver+g_sCurrency);
                 llSleep(5);
             }
-            kWinner = hgName2Key(llList2String(lMessage, 4));
+            kWinner = llList2Key(lMessage, 4);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeBronze > 0) {
                 llGiveMoney(kWinner, g_iPrizeBronze);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeBronze+g_sCurrency);
                 llSleep(5);
             }
-            kWinner = hgName2Key(llList2String(lMessage, 5));
+            kWinner = llList2Key(lMessage, 5);
             if (kWinner!=NULL_KEY && kWinner!="" && g_iPrizeBiggest > 0) {
                 llGiveMoney(kWinner, g_iPrizeBiggest);
                 llInstantMessage(kWinner, "You won "+(string)g_iPrizeBiggest+g_sCurrency);
@@ -211,5 +162,52 @@ default
         CalcPrizes();
         UpdateHover();
     }
-    
+
+    dataserver(key kID, string sData)
+    {
+        if (kID == g_kdsConfig) {
+            if (sData == EOF) {
+                if ((g_iPercentGold+g_iPercentSilver+g_iPercentBronze+g_iPercentBiggest)!=100) {
+                    llOwnerSay("Configuration error: the prize percentages for prize_gold, prize_silver, "+
+                        "prize_bronze and prize_biggest don't add up to 100");
+                }
+                UpdateHover();
+
+                if (g_iStartAmount && g_iPrizeTotal==0) g_iPrizeTotal = g_iStartAmount;
+                CalcPrizes();
+                UpdateHover();
+
+                g_iListenHandle = llListen(OPENFISHING_CHANNEL, "", NULL_KEY, "");
+                    
+                if (g_iAllowTopup) {
+                    llSetPayPrice(10, [1,5,10,20]);
+                    llSetClickAction(CLICK_ACTION_PAY);
+                } else {
+                    llSetClickAction(CLICK_ACTION_TOUCH);            
+                }
+                if ((llGetPermissions() & PERMISSION_DEBIT)==0) llRequestPermissions(llGetOwner(), PERMISSION_DEBIT);
+            } else {
+                g_iConfigLine++;
+                string line = llStringTrim(sData, STRING_TRIM);
+                list lPair = llParseString2List(line, ["="], []);
+                string sSetting = llList2String(lPair, 0);
+                if (llGetSubString(sSetting, 0, 0)!="#" || llGetSubString(sSetting, 0, 0)!="") {
+                    if (sSetting=="prize_gold") g_iPercentGold = llList2Float(lPair, 1);
+                    else if (sSetting=="prize_silver") g_iPercentSilver = llList2Float(lPair, 1);
+                    else if (sSetting=="prize_bronze") g_iPercentBronze = llList2Float(lPair, 1);
+                    else if (sSetting=="prize_biggest") g_iPercentBiggest = llList2Float(lPair, 1);
+                    else if (sSetting=="start_amount") g_iStartAmount = llList2Integer(lPair, 1);
+                    else if (sSetting=="sub_hover") g_sSubHover = llList2String(lPair, 1);
+                    else if (sSetting=="currency") g_sCurrency = " "+llList2String(lPair, 1);
+                    else if (sSetting=="allow_topup") {
+                        string sValue=llToLower(llList2String(lPair, 1));
+                        if (sValue=="true" || sValue=="yes" || sValue=="1") g_iAllowTopup=TRUE;
+                        else g_iAllowTopup=FALSE;
+                    }
+                }
+                g_kdsConfig = llGetNotecardLine("pot.config", g_iConfigLine);
+           }
+        }//g_kdsConfig
+    }
+   
 }
