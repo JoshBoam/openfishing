@@ -118,7 +118,7 @@ default
                     PRIM_ROT_LOCAL, g_rRodRot,
                     PRIM_COLOR, ALL_SIDES, <1,1,1>, 0
                 ]);
-                llShout(OPENFISHING_CHANNEL, OFID+"|transfer_score|"+g_kFisher+"|"+PrettyFloat(g_fScore));
+                llShout(OPENFISHING_CHANNEL, OFID+"|transfer_score|"+(string)g_kFisher+"|"+PrettyFloat(g_fScore));
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
                 ClearHover();
@@ -268,7 +268,7 @@ default
     control (key kAV, integer iHeld, integer iChange)
     {
         if (!llGetPermissions() & PERMISSION_TAKE_CONTROLS) return;
-        if (!llAvatarOnSitTarget()) return;
+        if (llAvatarOnSitTarget()==NULL_KEY) return;
         
         integer bPressed = iHeld & iChange;
         
@@ -314,7 +314,7 @@ default
                 // A response to a 'getfish' request is being offered
                 key kChair = llList2Key(lMessage, 2);
                 if (kChair!=llGetKey()) return;
-                key sFishName=llList2String(lMessage,3);
+                string sFishName=llList2String(lMessage,3);
                 float fFishWeight=llList2Float(lMessage,4);
                 if (fFishWeight!=0) {
                     // A fish has been caught
