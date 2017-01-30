@@ -125,30 +125,19 @@ UpdateScoreDisplay()
     }
 }
 
-// Hypergrid capable InstantMessage
-integer hgInstantMessage(string sName, string sMessage)
-{
-    integer idx = llSubStringIndex(sName, " ");
-    if (idx == -1) return idx;
-    string sFirst = llGetSubString(sName, 0, idx-1);
-    string sLast = llGetSubString(sName, idx+1, -1);
-    llInstantMessage(osAvatarName2Key(sFirst, sLast), sMessage);
-    return 0;
-}
-
 Conclude()
 {
-    string sInfo = "\n\nWe hope to see you soon again at:\n\n\t"+osGetGridHomeURI()+":"+llGetRegionName()+"\n\n";
-    if (g_kWinnerGold!=NULL_KEY) hgInstantMessage(g_sNameGold,
+    string sInfo = "\n\nWe hope to see you soon again at:\n\n\t:"+llGetRegionName()+"\n\n";
+    if (g_kWinnerGold!=NULL_KEY) llInstantMessage(g_kWinnerGold,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreGold)+
         " you have won the GOLD TROPHY!"+sInfo);
-    if (g_kWinnerSilver!=NULL_KEY) hgInstantMessage(g_sNameSilver,
+    if (g_kWinnerSilver!=NULL_KEY) llInstantMessage(g_kWinnerSilver,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreSilver)+
         " you have won the SILVER TROPHY"+sInfo);
-    if (g_kWinnerBronze!=NULL_KEY) hgInstantMessage(g_sNameBronze,
+    if (g_kWinnerBronze!=NULL_KEY) llInstantMessage(g_kWinnerBronze,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBronze)+
         "you have won the BRONZE TROPHY"+sInfo);
-    if (g_kWinnerBiggest!=NULL_KEY) hgInstantMessage(g_sNameBiggest,
+    if (g_kWinnerBiggest!=NULL_KEY) llInstantMessage(g_kWinnerBiggest,
         "\nCongratulations! With a score of "+PrettyFloat(g_fScoreBiggest)+
         "you have won the BIGGEST FISH"+sInfo);
         
