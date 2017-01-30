@@ -28,7 +28,8 @@ vector  g_vRodPosStrike;
 rotation g_rRodRot = <0.000000, 0.707107, 0.000000, 0.707107>;
 rotation g_rRodRotStrike = <0.000000, 0.500000, 0.000000, 0.866025>;
 
-vector  g_vSitTarget = <0.311127, -0.002022, 0.392170>;
+//vector  g_vSitTarget = <0.311127, -0.002022, 0.392170>;
+vector  g_vSitTarget = <0.01, 0.0, -0.05>; // for Relax3 & strike3
 vector  g_vSitShift = <0,0,0>;
 
 // Returns a float as a string to 1 decimal point. 1.123 -> 1.1
@@ -90,7 +91,7 @@ default
 {
     state_entry()
     {
-        //llSitTarget(g_vSitTarget, ZERO_ROTATION);
+        llSitTarget(g_vSitTarget, ZERO_ROTATION);
         g_iListenHandle = llListen(OPENFISHING_CHANNEL, "", NULL_KEY, "");
 
         g_iLinkScore = GetLinkByName("hover_score");
@@ -155,6 +156,7 @@ default
     run_time_permissions(integer perms)
     {
         if (perms & PERMISSION_TRIGGER_ANIMATION) {
+            llStopAnimation("sit");
             llStartAnimation("relax");
         }
         if (perms & PERMISSION_TAKE_CONTROLS) {
