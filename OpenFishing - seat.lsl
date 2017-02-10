@@ -96,6 +96,7 @@ default
 
         g_iLinkScore = GetLinkByName("hover_score");
         ClearHover();
+        llSetSitText("Start Fishing");
 
         // Set up rod
         g_iLinkRod = GetLinkByName("rod");
@@ -122,7 +123,7 @@ default
                 llShout(OPENFISHING_CHANNEL, OFID+"|transfer_score|"+(string)g_kFisher+"|"+PrettyFloat(g_fScore));
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
-                ClearHover();
+                llSetSitText("Start Fishing");
             } else {
                 // Fisher sits down
                 g_kFisher = kAvi;
