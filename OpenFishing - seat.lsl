@@ -123,6 +123,7 @@ default
                 llShout(OPENFISHING_CHANNEL, OFID+"|transfer_score|"+(string)g_kFisher+"|"+PrettyFloat(g_fScore));
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
+                ClearHover();
                 llSetSitText("Start Fishing");
             } else {
                 // Fisher sits down
