@@ -96,6 +96,7 @@ default
 
         g_iLinkScore = GetLinkByName("hover_score");
         ClearHover();
+        llSetSitText("Start Fishing");
 
         // Set up rod
         g_iLinkRod = GetLinkByName("rod");
@@ -123,8 +124,12 @@ default
                 llSetTimerEvent(0);
                 g_kFisher = NULL_KEY;
                 ClearHover();
+                llSetClickAction(CLICK_ACTION_SIT);
+                llSetSitText("Start Fishing");
             } else {
                 // Fisher sits down
+                llSetClickAction(CLICK_ACTION_TOUCH);
+                llSetSitText("");
                 g_kFisher = kAvi;
                 llRequestPermissions(g_kFisher, PERMISSION_TRIGGER_ANIMATION | PERMISSION_TAKE_CONTROLS);
                 // Sanity
