@@ -1,7 +1,6 @@
 # openfishing
 A fun fishing game for Open Simulator
-
-Sorry, no final release yet, but you can already try the game in OsGrid:
+The game has been released for free, boxed in the Geo Dome in Seven Oaks:
 
 http://opensimworld.com/hop/76133-Seven-Oaks
 
