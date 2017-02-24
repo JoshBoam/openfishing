@@ -1,5 +1,5 @@
 # openfishing
-A fun fishing game for Open Simulator
+A fun fishing game for Open Simulator  
 The game has been released for free, boxed in the Geo Dome in Seven Oaks:
 
 http://opensimworld.com/hop/76133-Seven-Oaks
