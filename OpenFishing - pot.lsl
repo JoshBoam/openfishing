@@ -121,8 +121,8 @@ key hgName2Key(string sName)
 {
     integer idx = llSubStringIndex(sName, " ");
     if (idx == -1) return NULL_KEY;
-    string sFirst = llGetSubString(sName, 0, idx-1);
-    string sLast = llGetSubString(sName, idx+1, -1);
+    string sFirst = llToLower(llGetSubString(sName, 0, idx-1));
+    string sLast = llToLower(llGetSubString(sName, idx+1, -1));
     return osAvatarName2Key(sFirst, sLast);
 }
 
