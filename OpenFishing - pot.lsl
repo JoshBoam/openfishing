@@ -106,6 +106,9 @@ default
             CalcPrizes();
             UpdateHover();
         }
+        if (what & CHANGED_OWNER) {
+            Init();
+        }
     }
     
     listen(integer iChannel, string sName, key kID, string sMessage)
