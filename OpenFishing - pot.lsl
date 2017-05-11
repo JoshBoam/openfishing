@@ -25,7 +25,7 @@ integer g_iAllowTopup = FALSE;
 // If set, displays an additional subtitle
 string g_sSubHover;
 
-string g_sCurrency = " OS";  // Just aestethic. Change to your grid currency.
+string g_sCurrency = " L";  // Just aestethic. Change to your grid currency.
 
 integer g_iInitialized = FALSE;
 
